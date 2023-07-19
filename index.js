@@ -1,10 +1,10 @@
 const express = require("express");
-const uuid = require("uuid");
+const uuid = require("short-uuid");
 
 const path = require("path");
 const fs = require("fs");
 
-const db = require("./db/db.json");
+let db = require("./db/db.json");
 
 const app = express();
 
@@ -20,13 +20,21 @@ app.get("/api/notes", (req, res) => res.json(db));
 
 app.post("/api/notes", (req, res) => {
     let note = req.body;
-    note.id = uuid.v4();
+    note.id = uuid.generate();
 
     db.push(note);
 
-    fs.writeFile("./db/db.json", JSON.stringify(db), "utf-8", (err) => err ? console.log(err) : console.log("Note written"));
+    fs.writeFile("./db/db.json", JSON.stringify(db), "utf-8", err => err ? console.log(err) : console.log("Note written"));
     res.send("Note written");
 });
 
+app.delete("/api/notes/:id", (req, res) => {
+    let id = req.params.id;
+
+    db = db.filter(note => note.id !== id);
+
+    fs.writeFile("./db/db.json", JSON.stringify(db), "utf-8", err => err ? console.log(err) : console.log(`Note with ID ${id} deleted`));
+    res.send(`Note with ID ${id} deleted`);
+});
 
 app.listen(PORT, () => console.log(`Note Taker App listening on port ${PORT}!`));
